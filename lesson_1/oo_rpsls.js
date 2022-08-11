@@ -31,6 +31,11 @@ const RPSLSGame = {
     return moves.join(' ');
   },
 
+  isWinner() {
+    return this.scoreboard.humanWins === this.maxWins ||
+           this.scoreboard.computerWins === this.maxWins;
+  },
+
   getWinner() {
     let humanMove = this.human.move;
     let computerMove = this.computer.move;
@@ -117,8 +122,7 @@ const RPSLSGame = {
     this.displayWelcomeMessage();
 
     while (true) {
-      while (this.scoreboard.humanWins < this.maxWins &&
-             this.scoreboard.computerWins < this.maxWins) {
+      while (!this.isWinner()) {
         this.human.chooseMove();
         this.computer.chooseMove();
         this.getWinner();
@@ -141,6 +145,8 @@ function createComputer() {
   let playerObject = createPlayer();
 
   let computerObject = {
+    minHumanMoveWinPercent: 60,
+
     chooseMove() {
       let moves = this.generateChoices();
       let randomIndex = Math.floor(Math.random() * moves.length);
@@ -165,7 +171,7 @@ function createComputer() {
         }
 
         let humanWinRate = (humanWins / computerPicks) * 100;
-        humanWinRatesAgainst.push([move, humanWinRate]);
+        humanWinRatesAgainst.push({ move: move, humanWinRate: humanWinRate });
       });
 
       return humanWinRatesAgainst;
@@ -175,11 +181,11 @@ function createComputer() {
       let humanWinRatesAgainst = this.getHumanWinRatesAgainst();
       let computerChoices = [];
 
-      humanWinRatesAgainst.forEach(move => {
-        if (move[1] > 60) {
-          computerChoices.push(move[0]);
+      humanWinRatesAgainst.forEach(computerMove => {
+        if (computerMove.humanWinRate > this.minHumanMoveWinPercent) {
+          computerChoices.push(computerMove.move);
         } else {
-          computerChoices.push(move[0], move[0]);
+          computerChoices.push(computerMove.move, computerMove.move);
         }
       });
 
